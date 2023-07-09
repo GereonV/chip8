@@ -1,0 +1,4 @@
+/obj/
+/bin/
+*.vim
+compile_flags.txt
