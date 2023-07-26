@@ -1,9 +1,15 @@
 #include <stdatomic.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <threads.h>
+#include <GLFW/glfw3.h>
+#include "app.h"
 #include "interpreter.h"
 #include "io.h"
+#include "render.h"
+
+static void error_callback_function(int code, char const * description) {
+	ERROR(description, code - 0x10000);
+}
 
 static int interpreter_thread_function(void *) {
 	// TODO setup memory
@@ -29,16 +35,24 @@ static int timers_thread_function(void *) {
 
 static void spawn_thread(thrd_start_t func) {
 	thrd_t thr;
-	if(thrd_create(&thr, func, nullptr) == thrd_success)
-		return;
-	fputs("[ERROR] creation of thread failed\n", stderr);
-	exit(1);
+	if(!thrd_create(&thr, func, nullptr) == thrd_success)
+		ERROR("creation of thread failed", 1);
 }
 
 int main() {
-	puts("Hello World!");
-	spawn_thread(interpreter_thread_function);
+	glfwSetErrorCallback(error_callback_function);
+	glfwInit();
+	atexit(glfwTerminate);
+	// TODO window creation hints
+	auto window = glfwCreateWindow(1280, 640, "CHIP-8", nullptr, nullptr);
+	glfwMakeContextCurrent(window);
+	init_render();
+	init_io();
+	// spawn_thread(interpreter_thread_function);
 	spawn_thread(timers_thread_function);
-	// TODO init glfw
-	init_io(nullptr); // TODO
+	while(!glfwWindowShouldClose(window)) {
+		render();
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
 }
