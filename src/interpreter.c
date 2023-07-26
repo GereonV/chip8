@@ -114,7 +114,7 @@ void fetch_decode_execute() {
 		program_counter = (unsigned short) (high_byte << 8 | low_byte) + registers[0];
 		break;
 	case 0xC:
-		*x = rand() & low_byte;
+		*x = (unsigned char) rand() & low_byte;
 		break;
 	case 0xD:
 		registers[15] = draw_sprite(memory + address_register, low_byte & 0b1111, *x, registers[low_byte >> 4]);
