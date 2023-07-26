@@ -1,10 +1,12 @@
 #include "io.h"
 #include <stdatomic.h>
 #include <threads.h>
+#include <GLFW/glfw3.h>
 
-static GLFWwindow * window;
 static bool blocked; // atomic
 static unsigned char key_pressed;
+
+static unsigned short keys;
 static short keymap[] = {
 	GLFW_KEY_X, // 0
 	GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, // 1-3
@@ -15,25 +17,32 @@ static short keymap[] = {
 };
 
 static void key_callback(GLFWwindow *, int key, int, int action, int) {
-	if(!atomic_load_explicit(&blocked, memory_order_relaxed))
-		return;
+	unsigned char chip_key;
 	// would be sooooo nice with avx512... :(
 	for(unsigned char i = 0; i < 16; ++i) {
 		if(keymap[i] == key) {
-			key_pressed = i;
+			chip_key = i;
 			break;
 		}
 	}
-	atomic_store_explicit(&blocked, false, memory_order_release);
+	unsigned short mask = 1 << chip_key;
+	if(action == GLFW_RELEASE) {
+		keys &= ~mask;
+		return;
+	}
+	keys |= mask;
+	if(action == GLFW_PRESS && atomic_load_explicit(&blocked, memory_order_relaxed)) {
+		key_pressed = chip_key;
+		atomic_store_explicit(&blocked, false, memory_order_release);
+	}
 }
 
-void init_io(GLFWwindow * win) {
-	window = win;
-	glfwSetKeyCallback(win, key_callback);
+void init_io() {
+	glfwSetKeyCallback(glfwGetCurrentContext(), key_callback);
 }
 
 bool is_key_pressed(unsigned char key) {
-	return glfwGetKey(window, keymap[key]);
+	return keys & (1 << key);
 }
 
 unsigned char next_keypress() {
