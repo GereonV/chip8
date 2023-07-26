@@ -7,8 +7,8 @@ ifeq '$(OS)' 'Windows_NT'
 BIN:=$(BIN).exe
 endif
 
-CFLAGS:=-std=c2x -march=native -flto -ffunction-sections -fdata-sections -Wpedantic -Wall -Wextra -Wconversion
-LDFLAGS:=-flto=auto -Wl,--gc-sections
+CFLAGS:=-std=c2x -march=native -flto -ffunction-sections -fdata-sections -Wpedantic -Wall -Wextra -Wconversion -Iinclude
+LDFLAGS:=-flto=auto -Wl,--gc-sections -lglfw
 
 DEBUGCFLAGS:=-Og -g -D _DEBUG
 DEBUGLDFLAGS:=-g
