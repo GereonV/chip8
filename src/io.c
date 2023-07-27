@@ -17,6 +17,8 @@ static short keymap[] = {
 };
 
 static void key_callback(GLFWwindow *, int key, int, int action, int) {
+	if(action == GLFW_REPEAT)
+		return;
 	unsigned char chip_key;
 	// would be sooooo nice with avx512... :(
 	for(unsigned char i = 0; i < 16; ++i) {
@@ -31,7 +33,7 @@ static void key_callback(GLFWwindow *, int key, int, int action, int) {
 		return;
 	}
 	keys |= mask;
-	if(action == GLFW_PRESS && atomic_load_explicit(&blocked, memory_order_relaxed)) {
+	if(atomic_load_explicit(&blocked, memory_order_relaxed)) {
 		key_pressed = chip_key;
 		atomic_store_explicit(&blocked, false, memory_order_release);
 	}
