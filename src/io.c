@@ -3,7 +3,7 @@
 #include <threads.h>
 #include <GLFW/glfw3.h>
 
-static bool blocked; // atomic
+static bool blocked, bpaused; // atomic
 static unsigned char key_pressed;
 
 static unsigned short keys;
@@ -19,6 +19,11 @@ static short keymap[] = {
 static void key_callback(GLFWwindow *, int key, int, int action, int) {
 	if(action == GLFW_REPEAT)
 		return;
+	if(key == GLFW_KEY_P) {
+		if(action == GLFW_PRESS)
+			atomic_store_explicit(&bpaused, !atomic_load_explicit(&bpaused, memory_order_relaxed), memory_order_relaxed);
+		return;
+	}
 	unsigned char chip_key;
 	// would be sooooo nice with avx512... :(
 	for(unsigned char i = 0; i < 16; ++i) {
@@ -41,6 +46,10 @@ static void key_callback(GLFWwindow *, int key, int, int action, int) {
 
 void init_io() {
 	glfwSetKeyCallback(glfwGetCurrentContext(), key_callback);
+}
+
+bool paused() {
+	return atomic_load_explicit(&bpaused, memory_order_relaxed);
 }
 
 bool is_key_pressed(unsigned char key) {

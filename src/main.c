@@ -12,9 +12,10 @@ static void error_callback_function(int code, char const * description) {
 }
 
 static int interpreter_thread_function(void *) {
-	struct timespec x = { .tv_nsec = 5'000'000, };
+	struct timespec x = { .tv_nsec = 3'000'000, };
 	while(true) {
-		fetch_decode_execute();
+		if(!paused())
+			fetch_decode_execute();
 		thrd_sleep(&x, nullptr);
 	}
 	return 0;

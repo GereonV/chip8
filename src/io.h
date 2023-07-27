@@ -2,6 +2,7 @@
 #define CHIP8_IO_H
 
 void init_io();
+bool paused();
 bool is_key_pressed(unsigned char key);
 unsigned char next_keypress();
 
