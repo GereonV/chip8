@@ -12,7 +12,6 @@ static void error_callback_function(int code, char const * description) {
 }
 
 static int interpreter_thread_function(void *) {
-	// TODO setup memory
 	while(true)
 		fetch_decode_execute();
 	return 0;
@@ -39,7 +38,9 @@ static void spawn_thread(thrd_start_t func) {
 		ERROR("creation of thread failed", 1);
 }
 
-int main() {
+int main(int argc, char *argv[argc]) {
+	if(argc != 2)
+		ERROR("invalid usage: <exe> <filename>", 50);
 	glfwSetErrorCallback(error_callback_function);
 	glfwInit();
 	atexit(glfwTerminate);
@@ -48,7 +49,8 @@ int main() {
 	glfwMakeContextCurrent(window);
 	init_render();
 	init_io();
-	// spawn_thread(interpreter_thread_function);
+	load_program(argv[1]);
+	spawn_thread(interpreter_thread_function);
 	spawn_thread(timers_thread_function);
 	while(!glfwWindowShouldClose(window)) {
 		render();
