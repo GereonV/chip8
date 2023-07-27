@@ -1,6 +1,8 @@
 #include "interpreter.h"
 #include <stdatomic.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "io.h"
 #include "render.h"
 
@@ -27,9 +29,26 @@ static unsigned char memory[4096] = {
 unsigned char delay_timer, sound_timer; // atomic
 static unsigned short program_counter, stack[12], * stack_pointer = stack;
 
+void load_program(char const * filename) {
+	auto f = fopen(filename, "r");
+	auto read = fread(memory + 0x200, 1, sizeof(memory) - 0x200, f);
+	if(!feof(f) || read > sizeof(memory) - 0x200 - 352) {
+		puts("[WARNING] suspicious program loaded");
+		fflush(stdout);
+	}
+	fclose(f);
+	program_counter = 0x200;
+}
+
 void fetch_decode_execute() {
 	auto high_byte = memory[program_counter++];
 	auto  low_byte = memory[program_counter++];
+	// puts  ("Registers:   V0   V1   V2   V3   V4   V5   V6   V7   V8   V9   VA   VB   VC   VD   VE   VF");
+	// printf("           %4hi %4hi %4hi %4hi %4hi %4hi %4hi %4hi %4hi %4hi %4hi %4hi %4hi %4hi %4hi %4hi\n", registers[0], registers[1], registers[2], registers[3], registers[4], registers[5], registers[6], registers[7], registers[8], registers[9], registers[10], registers[11], registers[12], registers[13], registers[14], registers[15]);
+	// printf("           0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi 0x%.2hi\n", registers[0], registers[1], registers[2], registers[3], registers[4], registers[5], registers[6], registers[7], registers[8], registers[9], registers[10], registers[11], registers[12], registers[13], registers[14], registers[15]);
+	// printf("PC: 0x%.3hX | I: 0x%.3hX\n", program_counter, address_register);
+	// printf("Instruction: 0x%.4hX\n\n", high_byte << 8 | low_byte);
+	// fflush(stdout);
 	auto x = registers + (high_byte & 0b1111);
 	switch(high_byte >> 4) { // highest nibble
 	case 0:
@@ -47,7 +66,7 @@ void fetch_decode_execute() {
 		*stack_pointer++ = program_counter;
 		[[fallthrough]];
 	case 1:
-		program_counter = high_byte << 8 | low_byte;
+		program_counter = (high_byte & 0b1111) << 8 | low_byte;
 		break;
 	case 3:
 		if(*x == low_byte)
@@ -108,7 +127,7 @@ void fetch_decode_execute() {
 		}
 		break;
 	case 0xA:
-		address_register = high_byte << 8 | low_byte;
+		address_register = (high_byte & 0b1111) << 8 | low_byte;
 		break;
 	case 0xB:
 		program_counter = (unsigned short) (high_byte << 8 | low_byte) + registers[0];
