@@ -12,18 +12,21 @@ static void error_callback_function(int code, char const * description) {
 }
 
 static int interpreter_thread_function(void *) {
-	while(true)
+	struct timespec x = { .tv_nsec = 5'000'000, };
+	while(true) {
 		fetch_decode_execute();
+		thrd_sleep(&x, nullptr);
+	}
 	return 0;
 }
 
 static void tick_timer(unsigned char * timer) {
-	if(atomic_load_explicit(&timer, memory_order_relaxed))
-		atomic_fetch_sub_explicit(&timer, 1, memory_order_relaxed);
+	if(atomic_load_explicit(timer, memory_order_relaxed))
+		atomic_fetch_sub_explicit(timer, 1, memory_order_relaxed);
 }
 
 static int timers_thread_function(void *) {
-	struct timespec x = { .tv_nsec = 166'600'000, };
+	struct timespec x = { .tv_nsec = 16'600'000, };
 	while(true) {
 		tick_timer(&delay_timer);
 		tick_timer(&sound_timer);
