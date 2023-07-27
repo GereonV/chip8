@@ -2,7 +2,7 @@ C:=gcc
 SRCEXT:=c
 SRCDIR:=src
 OBJDIR:=obj
-BIN:=bin/program
+BIN:=bin/chip8
 ifeq '$(OS)' 'Windows_NT'
 BIN:=$(BIN).exe
 endif
