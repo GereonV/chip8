@@ -98,7 +98,7 @@ void init_render() {
 
 void render() {
 	for(int i = 0; i < 32; ++i)
-		glUniform2ui(i, screen[i] >> 32, screen[i] & 0xFFFFFFFF);
+		glUniform2ui(i, (GLuint) (screen[i] >> 32), screen[i] & 0xFFFFFFFF);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
